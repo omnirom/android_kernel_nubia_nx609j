@@ -92,8 +92,6 @@ TARGET_PREBUILT_INT_KERNEL := $(KERNEL_OUT)/arch/$(KERNEL_ARCH)/boot/zImage
 endif
 endif
 
-ZTEMT_DTS_NAME:=$(DTS_NAME)
-export ZTEMT_DTS_NAME
 ifeq ($(TARGET_KERNEL_APPEND_DTB), true)
 $(info Using appended DTB)
 TARGET_PREBUILT_INT_KERNEL := $(TARGET_PREBUILT_INT_KERNEL)-dtb
@@ -119,19 +117,6 @@ mdpath=`find $(KERNEL_MODULES_OUT) -type f -name modules.dep`;\
 if [ "$$mdpath" != "" ];then\
 mpath=`dirname $$mdpath`; rm -rf $$mpath;\
 fi
-endef
-
-#nubia add for userrelease SW
-define remove_debug_from_defconfig
-if [ "$(TARGET_NUBIA_BUILD_TYPE)" == "release" ]; then \
-	sed -i '/CONFIG_NUBIA_INPUT_KEYRESET=y/d' $(TARGET_KERNEL_SOURCE)/arch/$(KERNEL_ARCH)/configs/$(KERNEL_DEFCONFIG); fi
-endef
-
-define checkout_defconfig
-if [ "$(TARGET_NUBIA_BUILD_TYPE)" == "release" ]; then \
-		cd $(TARGET_KERNEL_SOURCE); \
-		git checkout arch/$(KERNEL_ARCH)/configs/$(KERNEL_DEFCONFIG); \
-		cd -; fi
 endef
 
 ifneq ($(KERNEL_LEGACY_DIR),true)
@@ -160,10 +145,8 @@ $(TARGET_PREBUILT_INT_KERNEL): $(KERNEL_OUT) $(KERNEL_HEADERS_INSTALL)
 	$(MAKE) -C $(TARGET_KERNEL_SOURCE) O=$(BUILD_ROOT_LOC)$(KERNEL_OUT) INSTALL_MOD_PATH=$(BUILD_ROOT_LOC)../$(KERNEL_MODULES_INSTALL) INSTALL_MOD_STRIP=1 $(KERNEL_MAKE_ENV) ARCH=$(KERNEL_ARCH) CROSS_COMPILE=$(KERNEL_CROSS_COMPILE) modules_install
 	$(mv-modules)
 	$(clean-module-folder)
-	$(checkout_defconfig)
 
 $(KERNEL_HEADERS_INSTALL): $(KERNEL_OUT)
-	$(remove_debug_from_defconfig)
 	$(hide) if [ ! -z "$(KERNEL_HEADER_DEFCONFIG)" ]; then \
 			rm -f $(BUILD_ROOT_LOC)$(KERNEL_CONFIG); \
 			$(MAKE) -C $(TARGET_KERNEL_SOURCE) O=$(BUILD_ROOT_LOC)$(KERNEL_OUT) $(KERNEL_MAKE_ENV) ARCH=$(KERNEL_HEADER_ARCH) CROSS_COMPILE=$(KERNEL_CROSS_COMPILE) $(KERNEL_HEADER_DEFCONFIG); \
