@@ -1808,6 +1808,11 @@ static ssize_t qpnp_hap_vmax_store(struct device *dev,
 		return rc;
 
 	hap->vmax_mv = data;
+
+	rc = qpnp_hap_vmax_config(hap, hap->vmax_mv, true);
+	if (rc < 0)
+		return rc;
+
 	return count;
 }
 
@@ -2171,7 +2176,7 @@ static int qpnp_hap_auto_mode_config(struct qpnp_hap *hap, int time_ms)
 			ares_cfg.calibrate_at_eop = -EINVAL;
 		}
 
-		vmax_mv = QPNP_HAP_VMAX_MAX_MV;
+		vmax_mv = hap->vmax_mv;
 		rc = qpnp_hap_vmax_config(hap, vmax_mv, true);
 		if (rc < 0)
 			return rc;
